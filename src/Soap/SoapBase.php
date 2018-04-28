@@ -141,7 +141,7 @@ abstract class SoapBase implements SoapInterface
     /**
      * @var int
      */
-    public $waitingTime = 45;
+    public $waitingTime = 60;
 
     /**
      * SoapBase constructor.
@@ -235,9 +235,9 @@ abstract class SoapBase implements SoapInterface
      */
     public function setTemporaryFolder($folderRealPath)
     {
-        if (null !== $this->filesystem) {
-            $this->removeTemporarilyFiles();
-        }
+        // if (null !== $this->filesystem) {
+        //     $this->removeTemporarilyFiles();
+        // }
 
         $this->tempdir = $folderRealPath;
         $this->setLocalFolder($folderRealPath);
@@ -531,22 +531,27 @@ abstract class SoapBase implements SoapInterface
         $tint = new \DateInterval("PT" . $this->waitingTime . "M");
         $tint->invert = 1;
         $tsLimit = $dt->add($tint)->getTimestamp();
+        
         foreach ($contents as $item) {
             if ($item['type'] == 'file') {
-                if ($item['path'] == $this->prifile
-                    || $item['path'] == $this->pubfile
-                    || $item['path'] == $this->certfile
-                ) {
-                    $this->filesystem->delete($item['path']);
-                    continue;
-                }
+                
+                // if ($item['path'] == $this->prifile
+                //     || $item['path'] == $this->pubfile
+                //     || $item['path'] == $this->certfile
+                // ) {
+                //     $this->filesystem->delete($item['path']);
+                //     continue;
+                // }
+                
                 $timestamp = $this->filesystem->getTimestamp($item['path']);
+                
                 if ($timestamp < $tsLimit) {
                     //remove arquivos criados a mais de 45 min
                     $this->filesystem->delete($item['path']);
                 }
             }
         }
+
     }
 
     /**
