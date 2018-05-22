@@ -74,7 +74,7 @@ class SoapCurl extends SoapBase implements SoapInterface
         }
         $this->requestHead = implode("\n", $parameters);
         $this->requestBody = '<?xml version="1.0" encoding="utf-8"?>' . chr(10) . $envelope;
-        
+
         try {
             $oCurl = curl_init();
             $this->setCurlProxy($oCurl);
@@ -94,6 +94,7 @@ class SoapCurl extends SoapBase implements SoapInterface
             curl_setopt($oCurl, CURLOPT_SSLVERSION, $this->soapprotocol);
             curl_setopt($oCurl, CURLOPT_SSLCERT, $this->tempdir . $this->certfile);
             curl_setopt($oCurl, CURLOPT_SSLKEY, $this->tempdir . $this->prifile);
+
             if (!empty($this->temppass)) {
                 curl_setopt($oCurl, CURLOPT_KEYPASSWD, $this->temppass);
             }

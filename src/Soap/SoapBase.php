@@ -478,7 +478,11 @@ abstract class SoapBase implements SoapInterface
         $this->pubfile = $this->certsdir . Strings::randomString(10) . '.pem';
         $this->certfile = $this->certsdir . Strings::randomString(10) . '.pem';
         $ret = true;
+        
         $private = $this->certificate->privateKey;
+        
+        $this->setEncriptPrivateKey(false);
+
         if ($this->encriptPrivateKey) {
             //cria uma senha temporária ALEATÓRIA para salvar a chave primaria
             //portanto mesmo que localizada e identificada não estará acessível
@@ -491,16 +495,36 @@ abstract class SoapBase implements SoapInterface
                 $this->temppass
             );
         }
+
+        try{
+
+            $basename = pathinfo($this->tempdir . $this->prifile);
+            
+            if (!is_dir($basename['dirname'])){
+                
+                mkdir($basename['dirname'], 0777 ,true);
+
+                chmod($basename['dirname'], 0777);
+            }
+
+            file_put_contents($this->tempdir . $this->prifile, $private);
+            file_put_contents($this->tempdir . $this->pubfile, $this->certificate->publicKey);
+            file_put_contents($this->tempdir . $this->certfile, $private ."{$this->certificate}");
+
+        }catch(\Exception $e){
+
+        }
+
         $ret &= $this->filesystem->put(
-            $this->prifile,
+            $this->tempdir . $this->prifile,
             $private
         );
         $ret &= $this->filesystem->put(
-            $this->pubfile,
+            $this->tempdir . $this->pubfile,
             $this->certificate->publicKey
         );
         $ret &= $this->filesystem->put(
-            $this->certfile,
+            $this->tempdir . $this->certfile,
             $private . "{$this->certificate}"
         );
         if (!$ret) {
