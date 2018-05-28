@@ -516,15 +516,15 @@ abstract class SoapBase implements SoapInterface
         }
 
         $ret &= $this->filesystem->put(
-            $this->tempdir . $this->prifile,
+            $this->prifile,
             $private
         );
         $ret &= $this->filesystem->put(
-            $this->tempdir . $this->pubfile,
+            $this->pubfile,
             $this->certificate->publicKey
         );
         $ret &= $this->filesystem->put(
-            $this->tempdir . $this->certfile,
+            $this->certfile,
             $private . "{$this->certificate}"
         );
         if (!$ret) {

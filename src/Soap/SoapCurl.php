@@ -85,12 +85,18 @@ class SoapCurl extends SoapBase implements SoapInterface
             curl_setopt($oCurl, CURLOPT_HEADER, 1);
             curl_setopt($oCurl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($oCurl, CURLOPT_SSL_VERIFYPEER, 0);
+
             if (!$this->disablesec) {
                 curl_setopt($oCurl, CURLOPT_SSL_VERIFYHOST, 2);
                 if (is_file($this->casefaz)) {
                     curl_setopt($oCurl, CURLOPT_CAINFO, $this->casefaz);
                 }
             }
+
+            if (!is_file($this->tempdir . $this->certfile) || !is_file($this->tempdir . $this->prifile) ){
+                $this->saveTemporarilyKeyFiles();
+            }
+
             curl_setopt($oCurl, CURLOPT_SSLVERSION, $this->soapprotocol);
             curl_setopt($oCurl, CURLOPT_SSLCERT, $this->tempdir . $this->certfile);
             curl_setopt($oCurl, CURLOPT_SSLKEY, $this->tempdir . $this->prifile);
