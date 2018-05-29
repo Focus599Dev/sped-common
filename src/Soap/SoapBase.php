@@ -566,12 +566,17 @@ abstract class SoapBase implements SoapInterface
                 //     $this->filesystem->delete($item['path']);
                 //     continue;
                 // }
-                
-                $timestamp = $this->filesystem->getTimestamp($item['path']);
-                
-                if ($timestamp < $tsLimit) {
-                    //remove arquivos criados a mais de 45 min
-                    $this->filesystem->delete($item['path']);
+                try{
+                    
+                    $timestamp = $this->filesystem->getTimestamp($item['path']);
+                    
+                    if ($timestamp < $tsLimit) {
+                        //remove arquivos criados a mais de 45 min
+                        $this->filesystem->delete($item['path']);
+                    }
+
+                } catch(\Exception $e){
+
                 }
             }
         }
