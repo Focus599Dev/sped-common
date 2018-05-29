@@ -540,45 +540,49 @@ abstract class SoapBase implements SoapInterface
      */
     public function removeTemporarilyFiles()
     {
-        $contents = $this->filesystem->listContents($this->certsdir, true);
-        //define um limite de $waitingTime min, ou seja qualquer arquivo criado a mais
-        //de $waitingTime min será removido
-        //NOTA: quando ocorre algum erro interno na execução do script, alguns
-        //arquivos temporários podem permanecer
-        //NOTA: O tempo default é de 45 minutos e pode ser alterado diretamente nas
-        //propriedades da classe, esse tempo entre 5 a 45 min é recomendável pois
-        //podem haver processos concorrentes para um mesmo usuário. Esses processos
-        //como o DFe podem ser mais longos, dependendo a forma que o aplicativo
-        //utilize a API. Outra solução para remover arquivos "perdidos" pode ser
-        //encontrada oportunamente.
-        $dt = new \DateTime();
-        $tint = new \DateInterval("PT" . $this->waitingTime . "M");
-        $tint->invert = 1;
-        $tsLimit = $dt->add($tint)->getTimestamp();
-        
-        foreach ($contents as $item) {
-            if ($item['type'] == 'file') {
-                
-                // if ($item['path'] == $this->prifile
-                //     || $item['path'] == $this->pubfile
-                //     || $item['path'] == $this->certfile
-                // ) {
-                //     $this->filesystem->delete($item['path']);
-                //     continue;
-                // }
-                try{
+        try{
+            $contents = $this->filesystem->listContents($this->certsdir, true);
+            //define um limite de $waitingTime min, ou seja qualquer arquivo criado a mais
+            //de $waitingTime min será removido
+            //NOTA: quando ocorre algum erro interno na execução do script, alguns
+            //arquivos temporários podem permanecer
+            //NOTA: O tempo default é de 45 minutos e pode ser alterado diretamente nas
+            //propriedades da classe, esse tempo entre 5 a 45 min é recomendável pois
+            //podem haver processos concorrentes para um mesmo usuário. Esses processos
+            //como o DFe podem ser mais longos, dependendo a forma que o aplicativo
+            //utilize a API. Outra solução para remover arquivos "perdidos" pode ser
+            //encontrada oportunamente.
+            $dt = new \DateTime();
+            $tint = new \DateInterval("PT" . $this->waitingTime . "M");
+            $tint->invert = 15;
+            $tsLimit = $dt->add($tint)->getTimestamp();
+            
+            foreach ($contents as $item) {
+                if ($item['type'] == 'file') {
                     
-                    $timestamp = $this->filesystem->getTimestamp($item['path']);
-                    
-                    if ($timestamp < $tsLimit) {
-                        //remove arquivos criados a mais de 45 min
-                        $this->filesystem->delete($item['path']);
+                    // if ($item['path'] == $this->prifile
+                    //     || $item['path'] == $this->pubfile
+                    //     || $item['path'] == $this->certfile
+                    // ) {
+                    //     $this->filesystem->delete($item['path']);
+                    //     continue;
+                    // }
+                    try{
+                        
+                        $timestamp = $this->filesystem->getTimestamp($item['path']);
+                        
+                        if ($timestamp < $tsLimit) {
+                            //remove arquivos criados a mais de 45 min
+                            $this->filesystem->delete($item['path']);
+                        }
+
+                    } catch(\Exception $e){
+
                     }
-
-                } catch(\Exception $e){
-
                 }
             }
+        } catch(\Exception $e){
+            
         }
 
     }
