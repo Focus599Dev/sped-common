@@ -154,7 +154,7 @@ abstract class SoapBase implements SoapInterface
     ) {
         $this->logger = $logger;
         $this->loadCertificate($certificate);
-        $this->setTemporaryFolder(sys_get_temp_dir() . '/sped/');
+        $this->setTemporaryFolder(sys_get_temp_dir() . 'sped/');
 
         if (null !== $certificate) {
             $this->saveTemporarilyKeyFiles();
@@ -474,9 +474,9 @@ abstract class SoapBase implements SoapInterface
             );
         }
         $this->certsdir = $this->certificate->getCnpj() . '/certs/';
-        $this->prifile = $this->certsdir . Strings::randomString(10) . '.pem';
-        $this->pubfile = $this->certsdir . Strings::randomString(10) . '.pem';
-        $this->certfile = $this->certsdir . Strings::randomString(10) . '.pem';
+        $this->prifile = $this->certsdir . Strings::randomString(10) . time() . '-prifile.pem';
+        $this->pubfile = $this->certsdir . Strings::randomString(10) .  time() . '-pufile.pem';
+        $this->certfile = $this->certsdir . Strings::randomString(10) .  time() . '-certfile.pem';
         $ret = true;
         
         $private = $this->certificate->privateKey;
@@ -508,25 +508,15 @@ abstract class SoapBase implements SoapInterface
             }
 
             file_put_contents($this->tempdir . $this->prifile, $private);
+            
             file_put_contents($this->tempdir . $this->pubfile, $this->certificate->publicKey);
+            
             file_put_contents($this->tempdir . $this->certfile, $private ."{$this->certificate}");
 
         }catch(\Exception $e){
 
         }
 
-        $ret &= $this->filesystem->put(
-            $this->prifile,
-            $private
-        );
-        $ret &= $this->filesystem->put(
-            $this->pubfile,
-            $this->certificate->publicKey
-        );
-        $ret &= $this->filesystem->put(
-            $this->certfile,
-            $private . "{$this->certificate}"
-        );
         if (!$ret) {
             throw new RuntimeException(
                 'Unable to save temporary key files in folder.'
@@ -541,48 +531,28 @@ abstract class SoapBase implements SoapInterface
     public function removeTemporarilyFiles()
     {
         try{
-            $contents = $this->filesystem->listContents($this->certsdir, true);
-            //define um limite de $waitingTime min, ou seja qualquer arquivo criado a mais
-            //de $waitingTime min será removido
-            //NOTA: quando ocorre algum erro interno na execução do script, alguns
-            //arquivos temporários podem permanecer
-            //NOTA: O tempo default é de 45 minutos e pode ser alterado diretamente nas
-            //propriedades da classe, esse tempo entre 5 a 45 min é recomendável pois
-            //podem haver processos concorrentes para um mesmo usuário. Esses processos
-            //como o DFe podem ser mais longos, dependendo a forma que o aplicativo
-            //utilize a API. Outra solução para remover arquivos "perdidos" pode ser
-            //encontrada oportunamente.
-            $dt = new \DateTime();
-            $tint = new \DateInterval("PT" . $this->waitingTime . "M");
-            $tint->invert = 15;
-            $tsLimit = $dt->add($tint)->getTimestamp();
+            
+            $contents = glob($this->tempdir . $this->certsdir . '*');
             
             foreach ($contents as $item) {
-                if ($item['type'] == 'file') {
-                    
-                    // if ($item['path'] == $this->prifile
-                    //     || $item['path'] == $this->pubfile
-                    //     || $item['path'] == $this->certfile
-                    // ) {
-                    //     $this->filesystem->delete($item['path']);
-                    //     continue;
-                    // }
-                    try{
-                        
-                        $timestamp = $this->filesystem->getTimestamp($item['path']);
-                        
-                        if ($timestamp < $tsLimit) {
-                            //remove arquivos criados a mais de 45 min
-                            $this->filesystem->delete($item['path']);
-                        }
 
-                    } catch(\Exception $e){
+                if (is_file($item)){
 
+                    $last_modied = new \DateTime(date("Y-m-d H:i:s", filemtime($item)));
+
+                    $now = new \DateTime();
+
+                    $diff =  $last_modied->diff($now);
+
+                    if ($diff->d > 0 || $diff->m > 0 || $diff->i > 15){
+                       
+                        unlink($item);
                     }
                 }
             }
+
         } catch(\Exception $e){
-            
+
         }
 
     }
