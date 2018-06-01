@@ -160,7 +160,8 @@ abstract class SoapBase implements SoapInterface
         if (substr($dir, -1) != '/'){
             $dir =  $dir . '/';
         }
-
+        
+        var_dump($dir . 'sped/');
         $this->setTemporaryFolder($dir . 'sped/');
 
         if (null !== $certificate) {
@@ -519,9 +520,13 @@ abstract class SoapBase implements SoapInterface
             file_put_contents($this->tempdir . $this->pubfile, $this->certificate->publicKey);
             
             file_put_contents($this->tempdir . $this->certfile, $private ."{$this->certificate}");
+            
+            var_dump($this->tempdir . $this->certfile);
 
         }catch(\Exception $e){
-
+            var_dump($e->getMessage());
+            var_dump($e->getLine());
+            var_dump($e->getFile());
         }
 
         if (!$ret) {
@@ -559,7 +564,7 @@ abstract class SoapBase implements SoapInterface
             }
 
         } catch(\Exception $e){
-
+             var_dump($e->getMessage());
         }
 
     }
