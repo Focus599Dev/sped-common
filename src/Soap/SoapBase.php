@@ -161,7 +161,6 @@ abstract class SoapBase implements SoapInterface
             $dir =  $dir . '/';
         }
         
-        var_dump($dir . 'sped/');
         $this->setTemporaryFolder($dir . 'sped/');
 
         if (null !== $certificate) {
@@ -520,8 +519,6 @@ abstract class SoapBase implements SoapInterface
             file_put_contents($this->tempdir . $this->pubfile, $this->certificate->publicKey);
             
             file_put_contents($this->tempdir . $this->certfile, $private ."{$this->certificate}");
-            
-            var_dump($this->tempdir . $this->certfile);
 
         }catch(\Exception $e){
             var_dump($e->getMessage());
