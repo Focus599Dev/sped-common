@@ -221,6 +221,7 @@ abstract class SoapBase implements SoapInterface
     {
         if (is_file($capath)) {
             $this->casefaz = $capath;
+
         } else {
 
             $chainfile = $this->certsdir . Strings::randomString(10) . time() . '-chainfile.pem';
@@ -234,8 +235,6 @@ abstract class SoapBase implements SoapInterface
             }
 
         }
-
-
     }
 
     /**
