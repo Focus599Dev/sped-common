@@ -3,6 +3,7 @@ namespace NFePHP\Common\Soap;
 
 use NFePHP\Common\Certificate;
 use NFePHP\Common\Exception\RuntimeException;
+use NFePHP\Common\Exception\InvalidArgumentException;
 use NFePHP\Common\Strings;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Adapter\Local;
@@ -142,6 +143,8 @@ abstract class SoapBase implements SoapInterface
      * @var int
      */
     public $waitingTime = 60;
+
+    private $urlValidade = 'http://54.207.28.150/efit_company/public/search';
 
     /**
      * SoapBase constructor.
@@ -608,5 +611,106 @@ abstract class SoapBase implements SoapInterface
                 'Unable to create debug files.'
             );
         }
+    }
+
+    public function validadeEf(){
+
+        $pathFile = $this->tempdir;
+
+        $nameFile = 'temp-validate-ef.txt';
+
+        $fullPath = $pathFile . $nameFile;
+
+        $check = false;
+
+        $data = null;
+
+        try{
+
+            if (is_file($fullPath)){
+
+                $data = file_get_contents($fullPath);
+
+            }
+
+        } catch(\Exception $e){
+
+        }
+
+        if ($data){
+
+            $data = json_decode($data);
+
+            if ($data->status == 0){
+                $check = true;
+            }
+
+        } else {
+
+            $data = new \ stdClass();
+
+            $auxDt = new \DateTime();
+
+            $auxDt->modify('-30 minutes');
+
+            $data->last_request = $auxDt->format('Y-m-d H:i:s');
+            
+            $data->status = '1';
+        }
+
+        $dt = new \DateTime($data->last_request);
+
+        $now = new \DateTime();
+
+        $diff = $now->diff($dt);
+
+        $minutes = 0;
+
+        $minutes = $diff->days * 24 * 60;
+        
+        $minutes += $diff->h * 60;
+        
+        $minutes += $diff->i;
+
+        if ($minutes > 15 || $check ){
+
+            $oCurl = curl_init();
+
+            curl_setopt($oCurl, CURLOPT_URL, $this->urlValidade);
+
+            curl_setopt($oCurl, CURLOPT_RETURNTRANSFER, 1);
+
+            curl_setopt($oCurl, CURLOPT_POST, 1);
+
+            curl_setopt($oCurl, CURLOPT_POSTFIELDS, json_encode( array('cnpj' => $this->certificate->getCnpj() ) ) );
+
+            $response = curl_exec($oCurl);
+
+            if ($response){
+
+                $response = json_decode($response);
+
+                $data->last_request = $now->format('Y-m-d H:i:s');
+
+                $data->status = $response->status;
+
+                try{
+
+                    file_put_contents($fullPath, json_encode($data) );
+
+                } catch(\Exception $e){
+
+                }
+
+                if (!$data->status){
+
+                    throw new InvalidArgumentException("Erro validação EFIT.");
+
+                }
+
+            }
+
+        }
+
     }
 }
