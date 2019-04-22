@@ -44,7 +44,6 @@ class Validator
             foreach (libxml_get_errors() as $error) {
                 $errors[] = $error->message;
             }
-
             throw ValidatorException::xmlErrors($errors);
         }
         return true;
@@ -72,11 +71,5 @@ class Validator
         $errors = libxml_get_errors();
         libxml_clear_errors();
         return empty($errors);
-    }
-
-    public static function translateMessages($msg){
-
-        
-        
     }
 }

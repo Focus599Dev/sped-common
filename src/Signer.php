@@ -58,7 +58,6 @@ class Signer
         $canonical = [true,false,null,null],
         $rootname = ''
     ) {
-
         if (!empty($canonical)) {
             self::$canonical = $canonical;
         }
@@ -144,7 +143,6 @@ class Signer
         if (!empty($idSigned)) {
             $idSigned = "#$idSigned";
         }
-        
         $referenceNode->setAttribute('URI', $idSigned);
         $transformsNode = $dom->createElement('Transforms');
         $referenceNode->appendChild($transformsNode);
