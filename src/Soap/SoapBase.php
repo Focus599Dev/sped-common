@@ -8,6 +8,7 @@ use NFePHP\Common\Strings;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Adapter\Local;
 use Psr\Log\LoggerInterface;
+use NFePHP\Common\Exception\SoapException;
 
 /**
  * Soap base class
@@ -50,7 +51,7 @@ abstract class SoapBase implements SoapInterface
     /**
      * @var array
      */
-    protected $prefixes = [1 => 'soapenv', 2 => 'soap', 3 => 'soap12'];
+    protected $prefixes = [1 => 'soapenv', 2 => 'soap', 3 => 'soap12', 4 => 'SOAP-ENV' ];
     /**
      * @var Certificate
      */
@@ -452,6 +453,12 @@ abstract class SoapBase implements SoapInterface
         if (null === $header) {
             return '';
         }
+
+        if ($header === true){
+
+            return '<' . $envelopPrefix . ':Header/>';
+        }
+
         $headerItems = '';
         foreach ($header->data as $key => $value) {
             $headerItems .= '<' . $key . '>' . $value . '</' . $key . '>';
@@ -537,9 +544,11 @@ abstract class SoapBase implements SoapInterface
             file_put_contents($this->tempdir . $this->certfile, $private ."{$this->certificate}");
 
         }catch(\Exception $e){
+
             var_dump($e->getMessage());
             var_dump($e->getLine());
             var_dump($e->getFile());
+
         }
 
         if (!$ret) {
@@ -558,7 +567,7 @@ abstract class SoapBase implements SoapInterface
         try{
             
             $contents = glob($this->tempdir . $this->certsdir . '*');
-            
+
             foreach ($contents as $item) {
 
                 if (is_file($item)){
@@ -571,7 +580,7 @@ abstract class SoapBase implements SoapInterface
 
                     if ($diff->d > 0 || $diff->m > 0 || $diff->i > 15){
                        
-                        unlink($item);
+                        // unlink($item);
                     }
                 }
             }
@@ -708,9 +717,60 @@ abstract class SoapBase implements SoapInterface
 
                 }
 
+            } else {
+
+                throw new InvalidArgumentException("Erro validação EFIT.");
+                
             }
 
         }
 
+    }
+
+    public function sendByMiddleWhere($url, $operation, $action, $soapver, $parameters, $namespaces, $request, $soapheader){
+
+        $urlDestination = 'http://3.227.39.59/efit-2.0/public/WsMiddleWhere';
+
+        $data = array();
+
+        $data['url'] = $url;
+
+        $data['operation'] = $operation;
+
+        $data['action'] = $action;
+        
+        $data['soapver'] = $soapver;
+
+        $data['parameters'] = $parameters;
+
+        $data['namespaces'] = $namespaces;
+
+        $data['request'] = $request;
+
+        $data['soapheader'] = $soapheader;
+
+        $data['cnpj'] = $this->certificate->getCnpj();
+
+        $oCurl = curl_init();
+
+        curl_setopt($oCurl, CURLOPT_URL, $urlDestination);
+
+        curl_setopt($oCurl, CURLOPT_RETURNTRANSFER, 1);
+
+        curl_setopt($oCurl, CURLOPT_POST, 1);
+
+        curl_setopt($oCurl, CURLOPT_POSTFIELDS, json_encode( $data ) );
+
+        $response = curl_exec($oCurl);
+
+        if ($response == ''){
+
+            $ainfo = curl_getinfo($oCurl);
+            
+            throw SoapException::soapFault($ainfo . " [$url]");
+
+        }
+
+        return $response;
     }
 }
