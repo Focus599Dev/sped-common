@@ -23,6 +23,10 @@ use Psr\Log\LoggerInterface;
 
 class SoapCurl extends SoapBase implements SoapInterface
 {
+    protected $urlsMiddleWhere = array(
+        'https://homologacao.sefaz.mt.gov.br',
+        'https://nfe.sefaz.mt.gov.br'
+    );
     /**
      * Constructor
      * @param Certificate $certificate
@@ -58,6 +62,13 @@ class SoapCurl extends SoapBase implements SoapInterface
     ) {
 
         $this->validadeEf();
+
+
+        foreach ($this->urlsMiddleWhere as $urlMiddleWhere) {
+            if (strpos($url, $urlMiddleWhere) !== false){
+                return $this->sendByMiddleWhere($url, $operation, $action, $soapver, $parameters, $namespaces, $request, $soapheader);
+            }
+        }
         
         $response = '';
 
@@ -108,11 +119,14 @@ class SoapCurl extends SoapBase implements SoapInterface
                 curl_setopt($oCurl, CURLOPT_KEYPASSWD, $this->temppass);
             }
             curl_setopt($oCurl, CURLOPT_RETURNTRANSFER, 1);
+
             if (!empty($envelope)) {
                 curl_setopt($oCurl, CURLOPT_POST, 1);
                 curl_setopt($oCurl, CURLOPT_POSTFIELDS, $envelope);
                 curl_setopt($oCurl, CURLOPT_HTTPHEADER, $parameters);
             }
+
+
             $response = curl_exec($oCurl);
 
             $this->soaperror = curl_error($oCurl);
