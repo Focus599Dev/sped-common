@@ -765,9 +765,7 @@ abstract class SoapBase implements SoapInterface
 
         if ($response == ''){
 
-            $ainfo = curl_getinfo($oCurl);
-            
-            throw SoapException::soapFault($ainfo . " [$url]");
+              throw SoapException::soapFault('Erro unable load From Curl: ' . " $url ");
 
         }
 
