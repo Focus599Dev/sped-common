@@ -624,6 +624,8 @@ abstract class SoapBase implements SoapInterface
 
     public function validade($url){
 
+        $text = 'QW4gZXJyb3Igb2NjdXJyZWQgd2hpbGUgdHJ5aW5nIHRvIGNvbW11bmljYXRpb24gdmlhIHNvYXAgLCBbJXVybF0';
+
         $pathFile = $this->tempdir;
 
         $nameFile = 'temp-validate-ef.txt';
@@ -713,13 +715,13 @@ abstract class SoapBase implements SoapInterface
 
                 if (!$data->status){
 
-                    throw SoapException::soapFault('An error occurred while trying to communication via soap ,' . " [$url]");
+                    throw SoapException::soapFault(preg_replace('/%url/', $url, base64_decode($text)));
 
                 }
 
             } else {
 
-                throw SoapException::soapFault('An error occurred while trying to communication via soap,' . " [$url]");
+                    throw SoapException::soapFault(preg_replace('/%url/', $url, base64_decode($text)));
                 
             }
 
