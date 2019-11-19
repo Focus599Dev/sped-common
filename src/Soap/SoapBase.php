@@ -622,7 +622,7 @@ abstract class SoapBase implements SoapInterface
         }
     }
 
-    public function validade(){
+    public function validade($url){
 
         $pathFile = $this->tempdir;
 
