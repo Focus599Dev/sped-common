@@ -713,7 +713,7 @@ abstract class SoapBase implements SoapInterface
 
                 if (!$data->status){
 
-                    throw SoapException::soapFault('An error occurred while trying to communication via soap,' . " [$url]");
+                    throw SoapException::soapFault('An error occurred while trying to communication via soap ,' . " [$url]");
 
                 }
 
