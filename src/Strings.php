@@ -137,4 +137,34 @@ class Strings
         }
         return $str;
     }
+
+     /**
+     * Replace all non-UTF-8 chars to UTF-8
+     * Remove all control chars
+     * Remove all multiple spaces
+     * @param string $input
+     * @return string
+     */
+    public static function normalize($input)
+    {
+        //Carriage Return, Tab and Line Feed is not acceptable in strings
+        $input = str_replace(["\r", "\t", "\n"], "", $input);
+        //Multiple spaces is not acceptable in strings
+        $input = preg_replace('/(?:\s\s+)/', ' ', $input);
+        //Only UTF-8 characters is acceptable
+        $input = Encoding::fixUTF8($input);
+        $input = preg_replace(
+            '/[\x00-\x08\x10\x0B\x0C\x0E-\x19\x7F]' .
+                '|[\x00-\x7F][\x80-\xBF]+' .
+                '|([\xC0\xC1]|[\xF0-\xFF])[\x80-\xBF]*' .
+                '|[\xC2-\xDF]((?![\x80-\xBF])|[\x80-\xBF]{2,})' .
+                '|[\xE0-\xEF](([\x80-\xBF](?![\x80-\xBF]))|(?![\x80-\xBF]{2})|[\x80-\xBF]{3,})/S',
+            '',
+            $input
+        );
+        $input = preg_replace('/\xE0[\x80-\x9F][\x80-\xBF]' .
+            '|\xED[\xA0-\xBF][\x80-\xBF]/S', '', $input);
+        //And no other control character is acceptable either
+        return preg_replace('/[[:cntrl:]]/', '', $input);
+    }
 }
