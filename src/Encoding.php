@@ -8,7 +8,7 @@ class Encoding
     public const ICONV_IGNORE = 'IGNORE';
     public const WITHOUT_ICONV = 'NOICONV';
 
-    protected static array $win1252ToUtf8 = [
+    protected static $win1252ToUtf8 = [
         128 => "\xe2\x82\xac",
         130 => "\xe2\x80\x9a",
         131 => "\xc6\x92",
@@ -38,7 +38,7 @@ class Encoding
         159 => "\xc5\xb8",
     ];
 
-    protected static array $brokenUtf8ToUtf8 = [
+    protected static $brokenUtf8ToUtf8 = [
         "\xc2\x80" => "\xe2\x82\xac",
         "\xc2\x82" => "\xe2\x80\x9a",
         "\xc2\x83" => "\xc6\x92",
@@ -68,7 +68,7 @@ class Encoding
         "\xc2\x9f" => "\xc5\xb8",
     ];
 
-    protected static array $utf8ToWin1252 = [
+    protected static $utf8ToWin1252 = [
         "\xe2\x82\xac" => "\x80",
         "\xe2\x80\x9a" => "\x82",
         "\xc6\x92" => "\x83",
