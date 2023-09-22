@@ -167,4 +167,37 @@ class Strings
         //And no other control character is acceptable either
         return preg_replace('/[[:cntrl:]]/', '', $input);
     }
+     /**
+     * Clear inputs for build in XML
+     * Only UTF-8 characters is acceptable
+     * & isolated, less than, greater than, quotation marks and apostrophes
+     * should be replaced by their html equivalent
+     * Carriage Return, Tab and Line Feed is not acceptable in strings
+     * Multiple spaces is not acceptable in strings
+     * And no other control character is acceptable either
+     * @param string|null $input
+     * @return string|null
+     */
+    public static function replaceUnacceptableCharacters($input)
+    {
+        if (empty($input)) {
+            return $input;
+        }
+        $input = str_replace(['<', '>'], '', $input);
+        $input = str_replace('&', ' & ', $input);
+        $input = str_replace("'", '', $input);
+        $input = str_replace('"', '', $input);
+        $input = preg_replace('/(?:\s\s+)/', ' ', $input);
+        //& isolated, less than, greater than, quotation marks and apostrophes
+        //should be replaced by their html equivalent
+        $input = str_replace(
+            ['&', '<', '>', '"', "'"],
+            ['&amp;', '&lt;', '&gt;', '&quot;', '&#39;'],
+            $input
+        );
+        $input = self::normalize($input);
+        return trim($input);
+    }
+
+    
 }
