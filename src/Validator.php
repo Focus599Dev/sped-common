@@ -39,10 +39,17 @@ class Validator
         $dom->formatOutput = false;
         $dom->loadXML($xml, LIBXML_NOBLANKS | LIBXML_NOEMPTYTAG);
         libxml_clear_errors();
+
         if (! $dom->schemaValidate($xsd)) {
+            // Re-carrega formatado para que os erros apontem linhas corretas
+            $dom->formatOutput = true;
+            $dom->loadXML($dom->saveXML());
+            libxml_clear_errors();
+            $dom->schemaValidate($xsd);
+
             $errors = [];
             foreach (libxml_get_errors() as $error) {
-                $errors[] = $error->message;
+                $errors[] = trim($error->message) . " Linha: {$error->line} ";
             }
             throw ValidatorException::xmlErrors($errors);
         }
