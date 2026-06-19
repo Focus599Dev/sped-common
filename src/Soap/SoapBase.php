@@ -164,7 +164,7 @@ abstract class SoapBase implements SoapInterface
         if (substr($dir, -1) != '/'){
             $dir =  $dir . '/';
         }
-        
+
         $this->setTemporaryFolder($dir . 'sped/');
 
         if (null !== $certificate) {
@@ -565,25 +565,14 @@ abstract class SoapBase implements SoapInterface
     public function removeTemporarilyFiles()
     {
         try{
-            
-            $contents = glob($this->tempdir . $this->certsdir . '*');
+            if (is_file($this->tempdir . $this->certfile))
+                unlink($this->tempdir . $this->certfile);
 
-            foreach ($contents as $item) {
+            if (is_file($this->tempdir . $this->prifile))
+                unlink($this->tempdir . $this->prifile);
 
-                if (is_file($item)){
-
-                    $last_modied = new \DateTime(date("Y-m-d H:i:s", filemtime($item)));
-
-                    $now = new \DateTime();
-
-                    $diff =  $last_modied->diff($now);
-
-                    if ($diff->d > 0 || $diff->m > 0 || $diff->i > 15){
-                       
-                        unlink($item);
-                    }
-                }
-            }
+            if (is_file($this->tempdir . $this->pubfile))
+                unlink($this->tempdir . $this->pubfile);
 
         } catch(\Exception $e){
              var_dump($e->getMessage());
