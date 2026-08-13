@@ -1,4 +1,5 @@
 <?php
+
 namespace NFePHP\Common\Soap;
 
 use NFePHP\Common\Certificate;
@@ -51,7 +52,7 @@ abstract class SoapBase implements SoapInterface
     /**
      * @var array
      */
-    protected $prefixes = [1 => 'soapenv', 2 => 'soap', 3 => 'soap12', 4 => 'SOAP-ENV' ];
+    protected $prefixes = [1 => 'soapenv', 2 => 'soap', 3 => 'soap12', 4 => 'SOAP-ENV'];
     /**
      * @var Certificate
      */
@@ -161,7 +162,7 @@ abstract class SoapBase implements SoapInterface
 
         $dir = sys_get_temp_dir();
 
-        if (substr($dir, -1) != '/'){
+        if (substr($dir, -1) != '/') {
             $dir =  $dir . '/';
         }
 
@@ -225,19 +226,16 @@ abstract class SoapBase implements SoapInterface
     {
         if (is_file($capath)) {
             $this->casefaz = $capath;
-
         } else {
 
             $chainfile = $this->certsdir . Strings::randomString(10) . time() . '-chainfile.pem';
 
-            try{
+            try {
                 file_put_contents($this->tempdir . $chainfile, $capath);
 
                 $this->casefaz = $this->tempdir . $chainfile;
-            } catch(\Exception $e){
-
+            } catch (\Exception $e) {
             }
-
         }
     }
 
@@ -454,7 +452,7 @@ abstract class SoapBase implements SoapInterface
             return '';
         }
 
-        if ($header === true){
+        if ($header === true) {
 
             return '<' . $envelopPrefix . ':Header/>';
         }
@@ -508,9 +506,9 @@ abstract class SoapBase implements SoapInterface
         $this->pubfile = $this->certsdir . Strings::randomString(10) .  time() . '-pufile.pem';
         $this->certfile = $this->certsdir . Strings::randomString(10) .  time() . '-certfile.pem';
         $ret = true;
-        
+
         $private = $this->certificate->privateKey;
-        
+
         $this->setEncriptPrivateKey(false);
 
         if ($this->encriptPrivateKey) {
@@ -526,29 +524,27 @@ abstract class SoapBase implements SoapInterface
             );
         }
 
-        try{
+        try {
 
             $basename = pathinfo($this->tempdir . $this->prifile);
-            
-            if (!is_dir($basename['dirname'])){
-                
-                mkdir($basename['dirname'], 0777 ,true);
+
+            if (!is_dir($basename['dirname'])) {
+
+                mkdir($basename['dirname'], 0777, true);
 
                 chmod($basename['dirname'], 0777);
             }
 
             file_put_contents($this->tempdir . $this->prifile, $private);
-            
-            file_put_contents($this->tempdir . $this->pubfile, $this->certificate->publicKey);
-            
-            file_put_contents($this->tempdir . $this->certfile, $private ."{$this->certificate}");
 
-        }catch(\Exception $e){
+            file_put_contents($this->tempdir . $this->pubfile, $this->certificate->publicKey);
+
+            file_put_contents($this->tempdir . $this->certfile, $private . "{$this->certificate}");
+        } catch (\Exception $e) {
 
             var_dump($e->getMessage());
             var_dump($e->getLine());
             var_dump($e->getFile());
-
         }
 
         if (!$ret) {
@@ -559,25 +555,52 @@ abstract class SoapBase implements SoapInterface
     }
 
     /**
-     * Delete all files in folder
+     * Delete temporary files for this instance and periodically clean up orphaned files
      * @return void
      */
     public function removeTemporarilyFiles()
     {
-        try{
-            if (is_file($this->tempdir . $this->certfile))
-                unlink($this->tempdir . $this->certfile);
+        try {
+            $filesToClean = array(
+                $this->tempdir . $this->certfile,
+                $this->tempdir . $this->prifile,
+                $this->tempdir . $this->pubfile,
+            );
 
-            if (is_file($this->tempdir . $this->prifile))
-                unlink($this->tempdir . $this->prifile);
+            if (!empty($this->casefaz) && !empty($this->tempdir) && strpos($this->casefaz, $this->tempdir) === 0) {
+                $filesToClean[] = $this->casefaz;
+            }
 
-            if (is_file($this->tempdir . $this->pubfile))
-                unlink($this->tempdir . $this->pubfile);
-
-        } catch(\Exception $e){
-             var_dump($e->getMessage());
+            foreach ($filesToClean as $file) {
+                if (!empty($file) && is_file($file)) {
+                    @unlink($file);
+                }
+            }
+        } catch (\Exception $e) {
+            // Silently ignore cleanup errors
         }
 
+        // Garbage collection probabilístico (~2% das requisições para evitar I/O desnecessário em cada chamada)
+        if (mt_rand(1, 50) !== 1) {
+            return;
+        }
+
+        try {
+            if (!empty($this->tempdir) && !empty($this->certsdir) && is_dir($this->tempdir . $this->certsdir)) {
+                $contents = glob($this->tempdir . $this->certsdir . '*');
+                if (is_array($contents)) {
+                    $expiredThreshold = time() - 120; // 2 minutos
+
+                    foreach ($contents as $item) {
+                        if (is_file($item) && filemtime($item) < $expiredThreshold) {
+                            @unlink($item);
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Silently ignore cleanup errors
+        }
     }
 
     /**
@@ -611,7 +634,8 @@ abstract class SoapBase implements SoapInterface
         }
     }
 
-    public function validade($url){
+    public function validade($url)
+    {
 
         $text = 'QW4gZXJyb3Igb2NjdXJyZWQgd2hpbGUgdHJ5aW5nIHRvIGNvbW11bmljYXRpb24gdmlhIHNvYXAgLCBbJXVybF0';
 
@@ -625,36 +649,32 @@ abstract class SoapBase implements SoapInterface
 
         $data = null;
 
-        try{
+        try {
 
-            if (is_file($fullPath)){
+            if (is_file($fullPath)) {
 
                 $data = file_get_contents($fullPath);
-
             }
-
-        } catch(\Exception $e){
-
+        } catch (\Exception $e) {
         }
 
-        if ($data){
+        if ($data) {
 
             $data = json_decode($data);
 
-            if ($data->status == 0){
+            if ($data->status == 0) {
                 $check = true;
             }
-
         } else {
 
-            $data = new \ stdClass();
+            $data = new \stdClass();
 
             $auxDt = new \DateTime();
 
             $auxDt->modify('-30 minutes');
 
             $data->last_request = $auxDt->format('Y-m-d H:i:s');
-            
+
             $data->status = '1';
         }
 
@@ -667,12 +687,12 @@ abstract class SoapBase implements SoapInterface
         $minutes = 0;
 
         $minutes = $diff->days * 24 * 60;
-        
+
         $minutes += $diff->h * 60;
-        
+
         $minutes += $diff->i;
 
-        if ($minutes > 15 || $check ){
+        if ($minutes > 15 || $check) {
 
             $oCurl = curl_init();
 
@@ -682,11 +702,11 @@ abstract class SoapBase implements SoapInterface
 
             curl_setopt($oCurl, CURLOPT_POST, 1);
 
-            curl_setopt($oCurl, CURLOPT_POSTFIELDS, json_encode( array('cnpj' => $this->certificate->getCnpj() ) ) );
+            curl_setopt($oCurl, CURLOPT_POSTFIELDS, json_encode(array('cnpj' => $this->certificate->getCnpj())));
 
             $response = curl_exec($oCurl);
 
-            if ($response){
+            if ($response) {
 
                 $response = json_decode($response);
 
@@ -694,31 +714,25 @@ abstract class SoapBase implements SoapInterface
 
                 $data->status = $response->status;
 
-                try{
+                try {
 
-                    file_put_contents($fullPath, json_encode($data) );
-
-                } catch(\Exception $e){
-
+                    file_put_contents($fullPath, json_encode($data));
+                } catch (\Exception $e) {
                 }
 
-                if (!$data->status){
+                if (!$data->status) {
 
                     throw SoapException::soapFault(preg_replace('/%url/', $url, base64_decode($text)));
-
                 }
-
             } else {
 
-                    throw SoapException::soapFault(preg_replace('/%url/', $url, base64_decode($text)));
-                
+                throw SoapException::soapFault(preg_replace('/%url/', $url, base64_decode($text)));
             }
-
         }
-
     }
 
-    public function sendByMiddleWhere($url, $operation, $action, $soapver, $parameters, $namespaces, $request, $soapheader){
+    public function sendByMiddleWhere($url, $operation, $action, $soapver, $parameters, $namespaces, $request, $soapheader)
+    {
 
         $urlDestination = 'http://3.227.39.59/efit-2.0/public/WsMiddleWhere';
 
@@ -729,7 +743,7 @@ abstract class SoapBase implements SoapInterface
         $data['operation'] = $operation;
 
         $data['action'] = $action;
-        
+
         $data['soapver'] = $soapver;
 
         $data['parameters'] = $parameters;
@@ -750,14 +764,13 @@ abstract class SoapBase implements SoapInterface
 
         curl_setopt($oCurl, CURLOPT_POST, 1);
 
-        curl_setopt($oCurl, CURLOPT_POSTFIELDS, json_encode( $data ) );
+        curl_setopt($oCurl, CURLOPT_POSTFIELDS, json_encode($data));
 
         $response = curl_exec($oCurl);
 
-        if ($response == ''){
+        if ($response == '') {
 
-           throw SoapException::soapFault('Erro unable load From Curl: ' . " $url ");
-
+            throw SoapException::soapFault('Erro unable load From Curl: ' . " $url ");
         }
 
         return $response;
