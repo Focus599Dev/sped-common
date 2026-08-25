@@ -561,6 +561,7 @@ abstract class SoapBase implements SoapInterface
     public function removeTemporarilyFiles()
     {
         try {
+
             $filesToClean = array(
                 $this->tempdir . $this->certfile,
                 $this->tempdir . $this->prifile,
