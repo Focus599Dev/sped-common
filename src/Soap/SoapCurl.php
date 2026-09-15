@@ -56,9 +56,6 @@ class SoapCurl extends SoapBase implements SoapInterface
         $request = '',
         $soapheader = null
     ) {
-
-        $this->validade($url);
-        
         $response = '';
 
         $envelope = $this->makeEnvelopeSoap(
